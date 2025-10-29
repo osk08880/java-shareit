@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     public UserDto update(Long userId, UserDto userDto) {
         User existingUser = userStorage.findById(userId)
                 .orElseThrow(() -> {
-                    log.warn("Пользователь с ID {} не найден для обновления", userId);
+                    log.warn("Пользователь с ID {} не найден", userId);
                     return new NotFoundException("Пользователь не найден");
                 });
 
@@ -52,14 +52,15 @@ public class UserServiceImpl implements UserService {
                 : existingUser.getEmail();
 
         if (!newEmail.equals(existingUser.getEmail()) &&
-                userStorage.findAll().stream().anyMatch(u -> u.getId() != userId &&
-                        Objects.equals(u.getEmail(), newEmail))) {
-            log.warn("Попытка обновления пользователя ID {} с уже существующим email: {}", userId, newEmail);
+                userStorage.findAll().stream()
+                        .anyMatch(u -> !Objects.equals(u.getId(), userId) &&
+                                Objects.equals(u.getEmail(), newEmail))) {
+            log.warn("Попытка обновления пользователя с дублирующим email: {}", newEmail);
             throw new DuplicateEmailException("Email должен быть уникальным");
         }
 
         if (!newEmail.equals(existingUser.getEmail()) && !newEmail.contains("@")) {
-            log.warn("Некорректный формат email при обновлении пользователя ID {}: {}", userId, newEmail);
+            log.warn("Неверный формат email: {}", newEmail);
             throw new IllegalArgumentException("Неверный формат email");
         }
 
@@ -71,11 +72,11 @@ public class UserServiceImpl implements UserService {
 
         userStorage.update(updatedUser)
                 .orElseThrow(() -> {
-                    log.warn("Не удалось обновить пользователя ID {}", userId);
-                    return new NotFoundException("Обновление не выполнено");
+                    log.error("Не удалось обновить пользователя с ID {}", userId);
+                    return new NotFoundException("Обновление не удалось");
                 });
 
-        log.info("Обновлен пользователь: {}", updatedUser);
+        log.info("Пользователь обновлён: {}", updatedUser);
         return UserMapper.toUserDto(updatedUser);
     }
 
