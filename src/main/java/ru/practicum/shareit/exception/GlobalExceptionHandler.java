@@ -48,6 +48,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(MappingException.class)
+    public ResponseEntity<Map<String, String>> handleMappingException(MappingException ex) {
+        Map<String, String> error = Map.of("message", ex.getMessage());
+        log.warn("Ошибка при преобразовании объектов (mapping): {}", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException ex) {
         Map<String, String> error = Map.of("message", ex.getMessage());
