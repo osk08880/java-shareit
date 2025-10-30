@@ -20,6 +20,11 @@ public class InMemoryItemRequestStorage {
     }
 
     public Optional<ItemRequest> findById(Long requestId) {
+        if (requestId == null) {
+            log.warn("Попытка поиска запроса вещи с null ID");
+            return Optional.empty();
+        }
+
         ItemRequest request = requests.get(requestId);
         if (request == null) {
             log.warn("Запрос вещи с ID {} не найден", requestId);
@@ -36,6 +41,11 @@ public class InMemoryItemRequestStorage {
     }
 
     public void delete(Long requestId) {
+        if (requestId == null) {
+            log.warn("Попытка удалить запрос вещи с null ID");
+            return;
+        }
+
         if (requests.remove(requestId) != null) {
             log.info("Удалён запрос вещи с ID {}", requestId);
         } else {

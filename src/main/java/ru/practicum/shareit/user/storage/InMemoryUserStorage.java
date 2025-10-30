@@ -13,6 +13,10 @@ public class InMemoryUserStorage {
     private long idCounter = 1;
 
     public User create(User user) {
+        if (user == null) {
+            log.warn("Попытка добавить null-пользователя в хранилище");
+            throw new IllegalArgumentException("Пользователь не может быть null");
+        }
         user.setId(idCounter++);
         users.put(user.getId(), user);
         log.info("Пользователь добавлен в хранилище с ID {}", user.getId());
@@ -45,7 +49,15 @@ public class InMemoryUserStorage {
     }
 
     public void delete(Long userId) {
-        users.remove(userId);
-        log.info("Пользователь с ID {} удален из хранилища", userId);
+        if (userId == null) {
+            log.warn("Попытка удалить пользователя с null ID");
+            return;
+        }
+
+        if (users.remove(userId) != null) {
+            log.info("Пользователь с ID {} удален из хранилища", userId);
+        } else {
+            log.warn("Попытка удалить несуществующего пользователя ID {}", userId);
+        }
     }
 }

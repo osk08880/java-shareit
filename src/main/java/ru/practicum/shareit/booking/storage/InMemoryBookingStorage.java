@@ -21,8 +21,15 @@ public class InMemoryBookingStorage {
     }
 
     public List<Booking> findByItemId(Long itemId) {
+        if (itemId == null) {
+            log.warn("Поиск бронирований по itemId = null — возвращен пустой список");
+            return Collections.emptyList();
+        }
+
         return bookings.values().stream()
-                .filter(b -> b.getItem() != null && b.getItem().getId().equals(itemId))
+                .filter(Objects::nonNull)
+                .filter(booking -> booking.getItem() != null)
+                .filter(booking -> itemId.equals(booking.getItem().getId()))
                 .collect(Collectors.toList());
     }
 }

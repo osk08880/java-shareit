@@ -41,18 +41,40 @@ public class InMemoryItemStorage {
     }
 
     public List<Item> findAllByOwner(Long ownerId) {
+        if (ownerId == null) {
+            log.warn("Поиск вещей по ownerId = null — возвращен пустой список");
+            return Collections.emptyList();
+        }
+
         List<Item> ownedItems = items.values().stream()
-                .filter(i -> i.getOwner().getId().equals(ownerId))
+                .filter(Objects::nonNull)
+                .filter(item -> ownerId.equals(Optional.ofNullable(item.getOwner())
+                        .map(o -> o.getId())
+                        .orElse(null)))
                 .collect(Collectors.toList());
+
         log.info("Найдено {} вещей для владельца с ID {}", ownedItems.size(), ownerId);
         return ownedItems;
     }
 
     public List<Item> search(String text) {
+        if (text == null || text.isBlank()) {
+            log.info("Пустой поисковый запрос — возвращен пустой список");
+            return Collections.emptyList();
+        }
+
+        String lowerText = text.toLowerCase();
+
         List<Item> result = items.values().stream()
-                .filter(i -> i.getName().toLowerCase().contains(text.toLowerCase())
-                        || i.getDescription().toLowerCase().contains(text.toLowerCase()))
+                .filter(Objects::nonNull)
+                .filter(item -> Boolean.TRUE.equals(item.getAvailable()))
+                .filter(item -> {
+                    String name = Optional.ofNullable(item.getName()).orElse("").toLowerCase();
+                    String description = Optional.ofNullable(item.getDescription()).orElse("").toLowerCase();
+                    return name.contains(lowerText) || description.contains(lowerText);
+                })
                 .collect(Collectors.toList());
+
         log.info("Поиск '{}' вернул {} вещей", text, result.size());
         return result;
     }
