@@ -14,10 +14,13 @@ import java.util.List;
 @RequestMapping(path = "/items")
 @RequiredArgsConstructor
 public class ItemController {
+
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto create(@RequestHeader(USER_ID_HEADER) Long userId,
                           @Valid @RequestBody ItemDto itemDto,
                           @RequestParam(required = false) Long requestId) {
         log.info("Запрос POST /items - создание вещи пользователем {}: {}", userId, itemDto);
@@ -25,7 +28,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto update(@RequestHeader(USER_ID_HEADER) Long userId,
                           @PathVariable Long itemId,
                           @RequestBody ItemDto itemDto) {
         log.info("Запрос PATCH /items/{} - обновление вещи пользователем {}: {}", itemId, userId, itemDto);
@@ -39,7 +42,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> findAllByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDto> findAllByOwner(@RequestHeader(USER_ID_HEADER) Long userId) {
         log.info("Запрос GET /items - получение всех вещей пользователя {}", userId);
         return itemService.findAllByOwner(userId);
     }
