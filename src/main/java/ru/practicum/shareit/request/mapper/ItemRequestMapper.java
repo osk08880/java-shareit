@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request.mapper;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.practicum.shareit.exception.MappingException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
@@ -12,31 +13,25 @@ public class ItemRequestMapper {
 
     public static ItemRequestDto toItemRequestDto(ItemRequest request) {
         if (request == null) {
-            log.warn("Попытка преобразовать null в ItemRequestDto");
-            return null;
+            throw new MappingException("ItemRequest для преобразования в DTO не может быть null");
         }
-        ItemRequestDto dto = ItemRequestDto.builder()
+        return ItemRequestDto.builder()
                 .id(request.getId())
                 .description(request.getDescription())
                 .requestorId(request.getRequestor() != null ? request.getRequestor().getId() : null)
                 .created(request.getCreated())
                 .build();
-        log.info("Преобразован ItemRequest в ItemRequestDto: {}", dto);
-        return dto;
     }
 
     public static ItemRequest toItemRequest(ItemRequestDto dto, User requestor) {
         if (dto == null) {
-            log.warn("Попытка преобразовать null в ItemRequest");
-            return null;
+            throw new MappingException("ItemRequestDto для преобразования в ItemRequest не может быть null");
         }
-        ItemRequest request = ItemRequest.builder()
+        return ItemRequest.builder()
                 .id(dto.getId())
                 .description(dto.getDescription())
                 .requestor(requestor)
-                .created(dto.getCreated() != null ? dto.getCreated() : LocalDateTime.now())
+                .created(dto.getCreated() != null ? dto.getCreated() : java.time.LocalDateTime.now())
                 .build();
-        log.info("Преобразован ItemRequestDto в ItemRequest: {}", request);
-        return request;
     }
 }

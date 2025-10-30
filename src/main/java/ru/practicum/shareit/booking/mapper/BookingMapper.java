@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.MappingException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -12,8 +13,7 @@ public class BookingMapper {
 
     public static BookingDto toBookingDto(Booking booking) {
         if (booking == null) {
-            log.warn("Попытка преобразовать пустое бронирование в DTO");
-            return null;
+            throw new MappingException("Booking для преобразования в DTO не может быть null");
         }
 
         BookingDto dto = BookingDto.builder()
@@ -31,11 +31,10 @@ public class BookingMapper {
 
     public static Booking toBooking(BookingDto dto, Item item, User booker) {
         if (dto == null) {
-            log.warn("Попытка преобразовать пустой DTO в бронирование");
-            return null;
+            throw new MappingException("BookingDto для преобразования в Booking не может быть null");
         }
 
-        Booking booking = Booking.builder()
+        return Booking.builder()
                 .id(dto.getId())
                 .start(dto.getStart())
                 .end(dto.getEnd())
@@ -43,8 +42,5 @@ public class BookingMapper {
                 .booker(booker)
                 .status(dto.getStatus() != null ? BookingStatus.valueOf(dto.getStatus()) : BookingStatus.WAITING)
                 .build();
-
-        log.info("DTO преобразован в бронирование: {}", booking);
-        return booking;
     }
 }
