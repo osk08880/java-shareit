@@ -10,8 +10,19 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class InMemoryItemStorage {
+
     private final Map<Long, Item> items = new HashMap<>();
     private long idCounter = 1;
+
+    private String normalize(String s) {
+        return s == null ? "" : s.toLowerCase();
+    }
+
+    private boolean matches(Item item, String query) {
+        String name = normalize(item.getName());
+        String description = normalize(item.getDescription());
+        return name.contains(query) || description.contains(query);
+    }
 
     public Item create(Item item) {
         item.setId(idCounter++);
@@ -31,13 +42,15 @@ public class InMemoryItemStorage {
     }
 
     public Optional<Item> findById(Long itemId) {
-        Item item = items.get(itemId);
-        if (item == null) {
-            log.warn("Вещь с ID {} не найдена", itemId);
-            return Optional.empty();
-        }
-        log.info("Вещь найдена по ID {}: {}", itemId, item);
-        return Optional.of(item);
+        return Optional.ofNullable(items.get(itemId))
+                .map(item -> {
+                    log.info("Вещь найдена по ID {}: {}", itemId, item);
+                    return item;
+                })
+                .or(() -> {
+                    log.warn("Вещь с ID {} не найдена", itemId);
+                    return Optional.empty();
+                });
     }
 
     public List<Item> findAllByOwner(Long ownerId) {
@@ -48,9 +61,7 @@ public class InMemoryItemStorage {
 
         List<Item> ownedItems = items.values().stream()
                 .filter(Objects::nonNull)
-                .filter(item -> ownerId.equals(Optional.ofNullable(item.getOwner())
-                        .map(o -> o.getId())
-                        .orElse(null)))
+                .filter(item -> ownerId.equals(item.getOwnerId()))
                 .collect(Collectors.toList());
 
         log.info("Найдено {} вещей для владельца с ID {}", ownedItems.size(), ownerId);
@@ -63,16 +74,12 @@ public class InMemoryItemStorage {
             return Collections.emptyList();
         }
 
-        String lowerText = text.toLowerCase();
+        String query = text.toLowerCase();
 
         List<Item> result = items.values().stream()
                 .filter(Objects::nonNull)
-                .filter(item -> Boolean.TRUE.equals(item.getAvailable()))
-                .filter(item -> {
-                    String name = Optional.ofNullable(item.getName()).orElse("").toLowerCase();
-                    String description = Optional.ofNullable(item.getDescription()).orElse("").toLowerCase();
-                    return name.contains(lowerText) || description.contains(lowerText);
-                })
+                .filter(Item::getAvailable)
+                .filter(item -> matches(item, query))
                 .collect(Collectors.toList());
 
         log.info("Поиск '{}' вернул {} вещей", text, result.size());
