@@ -46,7 +46,7 @@ public class BookingServiceImpl implements BookingService {
             log.warn("Вещь {} недоступна для бронирования", item.getId());
             throw new IllegalArgumentException("Вещь недоступна для бронирования");
         }
-        if (item.getOwnerId().equals(userId)) {
+        if (item.getOwner().getId().equals(userId)) {
             log.warn("Пользователь {} пытается забронировать свою вещь {}", userId, item.getId());
             throw new NotFoundException("Нельзя бронировать свою вещь");
         }
@@ -68,7 +68,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         Item item = booking.getItem();
 
-        if (!item.getOwnerId().equals(userId)) {
+        if (!item.getOwner().getId().equals(userId)) {
             log.warn("Пользователь {} не владелец вещи {} и не может подтверждать бронирование", userId, item.getId());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Только владелец может подтверждать бронирование");
         }
@@ -92,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
-        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwnerId().equals(userId)) {
+        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {
             log.warn("Пользователь {} не имеет доступа к бронированию {}", userId, bookingId);
             throw new NotFoundException("Нет доступа к бронированию");
         }

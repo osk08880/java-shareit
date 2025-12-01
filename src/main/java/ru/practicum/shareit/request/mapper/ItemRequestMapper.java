@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.exception.MappingException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 public class ItemRequestMapper {
@@ -16,7 +19,7 @@ public class ItemRequestMapper {
         return ItemRequestDto.builder()
                 .id(request.getId())
                 .description(request.getDescription())
-                .requestorId(request.getRequestor() != null ? request.getRequestor().getId() : null)
+                .requestor(UserMapper.toUserDto(request.getRequestor()))
                 .created(request.getCreated())
                 .build();
     }
@@ -29,7 +32,7 @@ public class ItemRequestMapper {
                 .id(dto.getId())
                 .description(dto.getDescription())
                 .requestor(requestor)
-                .created(dto.getCreated() != null ? dto.getCreated() : java.time.LocalDateTime.now())
+                .created(dto.getCreated() != null ? dto.getCreated() : LocalDateTime.now())
                 .build();
     }
 }

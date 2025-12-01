@@ -21,19 +21,9 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto create(@RequestHeader(USER_ID_HEADER) Long userId,
-                          @Valid @RequestBody ItemDto itemDto,
-                          @RequestParam(required = false) Long requestId) {
-        log.info("Запрос POST /items - создание вещи пользователем {}: {}", userId, itemDto);
-        return itemService.create(userId, itemDto, requestId);
-    }
-
-    @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader(USER_ID_HEADER) Long userId,
-                          @PathVariable Long itemId,
-                          @RequestBody ItemDto itemDto) {
-        log.info("Запрос PATCH /items/{} - обновление вещи пользователем {}: {}", itemId, userId, itemDto);
-        return itemService.update(userId, itemId, itemDto);
+    public ItemDto create(@Valid @RequestBody ItemDto itemDto,
+                          @RequestHeader("X-Sharer-User-Id") Long userId) {
+        return itemService.create(userId, itemDto, itemDto.getRequestId());
     }
 
     @GetMapping("/{itemId}")

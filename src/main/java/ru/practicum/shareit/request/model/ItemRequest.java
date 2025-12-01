@@ -1,23 +1,36 @@
 package ru.practicum.shareit.request.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
+@Builder
+@Entity
+@Table(name = "requests")
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ItemRequest {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "description", nullable = false)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requestor_id", nullable = false)
     private User requestor;
 
-    private LocalDateTime created;
+    @Column(name = "created", nullable = false)
+    private LocalDateTime created = LocalDateTime.now();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Item> items = new ArrayList<>();
 }

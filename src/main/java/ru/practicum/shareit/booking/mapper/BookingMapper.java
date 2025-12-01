@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingDtoForItem;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.MappingException;
@@ -40,6 +41,14 @@ public class BookingMapper {
                 .item(itemDto)
                 .booker(bookerDto)
                 .build();
+    }
+
+    public BookingDtoForItem toBookingDtoForItem(Booking booking) {
+        if (booking == null) {
+            log.warn("Попытка преобразовать null Booking в BookingDtoForItem");
+            return null;
+        }
+        return BookingDtoForItem.toDto(booking);
     }
 
     public Booking toBooking(BookingDto dto, Item item, User booker) {

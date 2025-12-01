@@ -6,31 +6,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import ru.practicum.shareit.booking.dto.BookingDto;
-
-import java.util.List;
+import ru.practicum.shareit.booking.dto.BookingDtoForItem;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ItemDto {
     private Long id;
-
-    @NotBlank(message = "Название не может быть пустым")
+    @NotBlank
     private String name;
-
-    @NotBlank(message = "Описание не может быть пустым")
+    @NotBlank
     private String description;
-
-    @NotNull(message = "Поле обязательно для заполнения")
+    @NotNull
     private Boolean available;
-
+    private ItemRequest request;
+    private UserDto owner;
     private Long requestId;
+    private BookingDtoForItem lastBooking;
+    private BookingDtoForItem nextBooking;
 
-    private BookingDto lastBooking;
-
-    private BookingDto nextBooking;
-
-    private List<CommentDto> comments;
+    public static ItemDto toDto(Item item) {
+        return ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .request(item.getRequest())
+                .owner(UserMapper.toUserDto(item.getOwner()))
+                .lastBooking(BookingDtoForItem.toDto(item.getLastBooking()))
+                .nextBooking(BookingDtoForItem.toDto(item.getNextBooking()))
+                .build();
+    }
 }

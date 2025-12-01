@@ -61,7 +61,7 @@ public class InMemoryItemStorage {
 
         List<Item> ownedItems = items.values().stream()
                 .filter(Objects::nonNull)
-                .filter(item -> ownerId.equals(item.getOwnerId()))
+                .filter(item -> ownerId.equals(item.getOwner().getId()))
                 .collect(Collectors.toList());
 
         log.info("Найдено {} вещей для владельца с ID {}", ownedItems.size(), ownerId);
