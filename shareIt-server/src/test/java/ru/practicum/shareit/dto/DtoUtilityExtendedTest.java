@@ -57,11 +57,11 @@ class DtoUtilityExtendedTest {
     void bookingDtoForItem_toDto_mapsCorrectly() {
         Booking booking = new Booking();
         booking.setId(100L);
-        booking.setBooker(new User(){{
-            setId(2L);
-        }});
-        booking.setStart(LocalDateTime.of(2025,12,6,10,0));
-        booking.setEnd(LocalDateTime.of(2025,12,6,12,0));
+        User booker = new User();
+        booker.setId(2L);
+        booking.setBooker(booker);
+        booking.setStart(LocalDateTime.of(2025, 12, 6, 10, 0));
+        booking.setEnd(LocalDateTime.of(2025, 12, 6, 12, 0));
 
         var dto = BookingDtoForItem.toDto(booking);
 
@@ -81,7 +81,7 @@ class DtoUtilityExtendedTest {
         request.setId(50L);
         request.setDescription("Need drill");
         request.setRequestor(requestor);
-        request.setCreated(LocalDateTime.of(2025,12,6,15,0));
+        request.setCreated(LocalDateTime.of(2025, 12, 6, 15, 0));
 
         var dto = ItemRequestDto.toDto(request, true);
 
