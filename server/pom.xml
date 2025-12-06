@@ -12,7 +12,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>shareIt-server</artifactId>
+    <artifactId>server</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -52,7 +52,7 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot plugin -->
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -67,13 +67,13 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo plugin -->
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
                 <executions>
-                    <!-- Подготовка агента перед тестами -->
+
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
@@ -81,7 +81,7 @@
                         </goals>
                     </execution>
 
-                    <!-- Генерация отчёта после тестов -->
+
                     <execution>
                         <id>report</id>
                         <phase>prepare-package</phase>
@@ -90,7 +90,7 @@
                         </goals>
                     </execution>
 
-                    <!-- Проверка покрытия -->
+
                     <execution>
                         <id>check</id>
                         <goals>

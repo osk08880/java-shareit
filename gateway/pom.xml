@@ -7,11 +7,11 @@
     <parent>
         <groupId>ru.practicum</groupId>
         <artifactId>shareit</artifactId>
-        <version>0.0.1-SNAPSHOT</version>  <!-- Исправлено: версия совпадает с корневым pom -->
-        <relativePath>../pom.xml</relativePath>  <!-- Путь к корневому pom -->
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>shareIt-gateway</artifactId>
+    <artifactId>gateway</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -28,18 +28,18 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Lombok -->
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- Для REST-клиента (RestTemplate использует Apache HttpClient для requestFactory) -->
+
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
-        <!-- Опционально: OkHttp, если используешь вместо RestTemplate -->
+
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
