@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestResponseDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
@@ -24,12 +25,23 @@ class DtoJsonExtendedTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void commentDto_fullTest() throws Exception {
+    void userDto_serializationDeserialization() throws Exception {
+        UserDto user = UserDto.builder().id(1L).name("Alice").email("alice@example.com").build();
+        String json = objectMapper.writeValueAsString(user);
+        UserDto deserialized = objectMapper.readValue(json, UserDto.class);
+
+        assertThat(deserialized.getId()).isEqualTo(1L);
+        assertThat(deserialized.getName()).isEqualTo("Alice");
+        assertThat(deserialized.getEmail()).isEqualTo("alice@example.com");
+    }
+
+    @Test
+    void commentDto_serializationDeserialization() throws Exception {
         CommentDto comment = CommentDto.builder()
                 .id(1L)
                 .text("Nice item")
                 .authorName("Bob")
-                .created(LocalDateTime.of(2025, 12, 6, 12, 0, 0))
+                .created(LocalDateTime.of(2025, 12, 6, 12, 0))
                 .build();
 
         String json = objectMapper.writeValueAsString(comment);
@@ -42,32 +54,7 @@ class DtoJsonExtendedTest {
     }
 
     @Test
-    void itemDto_fullTest() throws Exception {
-        ItemDto item = ItemDto.builder()
-                .id(1L)
-                .name("Drill")
-                .description("Powerful drill")
-                .available(true)
-                .comments(Collections.singletonList(
-                        CommentDto.builder()
-                                .id(10L)
-                                .text("Comment")
-                                .authorName("Alice")
-                                .created(LocalDateTime.now())
-                                .build()
-                ))
-                .build();
-
-        String json = objectMapper.writeValueAsString(item);
-        ItemDto deserialized = objectMapper.readValue(json, ItemDto.class);
-
-        assertThat(deserialized.getName()).isEqualTo("Drill");
-        assertThat(deserialized.getComments()).hasSize(1);
-        assertThat(deserialized.getComments().get(0).getAuthorName()).isEqualTo("Alice");
-    }
-
-    @Test
-    void bookingDtoForItem_fullTest() throws Exception {
+    void bookingDtoForItem_serializationDeserialization() throws Exception {
         BookingDtoForItem dto = BookingDtoForItem.builder()
                 .id(1L)
                 .bookerId(2L)
@@ -78,11 +65,14 @@ class DtoJsonExtendedTest {
         String json = objectMapper.writeValueAsString(dto);
         BookingDtoForItem deserialized = objectMapper.readValue(json, BookingDtoForItem.class);
 
+        assertThat(deserialized.getId()).isEqualTo(1L);
         assertThat(deserialized.getBookerId()).isEqualTo(2L);
+        assertThat(deserialized.getStart()).isEqualTo(dto.getStart());
+        assertThat(deserialized.getEnd()).isEqualTo(dto.getEnd());
     }
 
     @Test
-    void bookingDto_fullTest() throws Exception {
+    void bookingDto_serializationDeserialization() throws Exception {
         BookingDto booking = BookingDto.builder()
                 .id(1L)
                 .status(BookingStatus.APPROVED)
@@ -103,15 +93,33 @@ class DtoJsonExtendedTest {
     }
 
     @Test
-    void itemRequestDto_fullTest() throws Exception {
+    void itemDto_serializationDeserialization() throws Exception {
+        ItemDto item = ItemDto.builder()
+                .id(1L)
+                .name("Drill")
+                .description("Powerful drill")
+                .available(true)
+                .comments(Collections.singletonList(
+                        CommentDto.builder().id(10L).text("Comment").authorName("Alice").created(LocalDateTime.now()).build()
+                ))
+                .build();
+
+        String json = objectMapper.writeValueAsString(item);
+        ItemDto deserialized = objectMapper.readValue(json, ItemDto.class);
+
+        assertThat(deserialized.getName()).isEqualTo("Drill");
+        assertThat(deserialized.getComments()).hasSize(1);
+        assertThat(deserialized.getComments().get(0).getAuthorName()).isEqualTo("Alice");
+    }
+
+    @Test
+    void itemRequestDto_serializationDeserialization() throws Exception {
         ItemRequestDto requestDto = ItemRequestDto.builder()
                 .id(1L)
                 .description("Need drill")
                 .created(LocalDateTime.of(2025, 12, 6, 15, 0))
                 .requestor(UserDto.builder().id(1L).name("Bob").email("bob@example.com").build())
-                .items(Collections.singletonList(
-                        ItemDto.builder().id(10L).name("Drill").description("Powerful").available(true).build()
-                ))
+                .items(Collections.singletonList(ItemDto.builder().id(10L).name("Drill").available(true).build()))
                 .build();
 
         String json = objectMapper.writeValueAsString(requestDto);
@@ -124,17 +132,18 @@ class DtoJsonExtendedTest {
     }
 
     @Test
-    void userDto_fullTest() throws Exception {
-        UserDto user = UserDto.builder()
+    void itemRequestResponseDto_serializationDeserialization() throws Exception {
+        ItemRequestResponseDto responseDto = ItemRequestResponseDto.builder()
                 .id(1L)
-                .name("Alice")
-                .email("alice@example.com")
+                .name("Drill")
+                .ownerId(2L)
                 .build();
 
-        String json = objectMapper.writeValueAsString(user);
-        UserDto deserialized = objectMapper.readValue(json, UserDto.class);
+        String json = objectMapper.writeValueAsString(responseDto);
+        ItemRequestResponseDto deserialized = objectMapper.readValue(json, ItemRequestResponseDto.class);
 
-        assertThat(deserialized.getEmail()).isEqualTo("alice@example.com");
-        assertThat(deserialized.getName()).isEqualTo("Alice");
+        assertThat(deserialized.getId()).isEqualTo(1L);
+        assertThat(deserialized.getName()).isEqualTo("Drill");
+        assertThat(deserialized.getOwnerId()).isEqualTo(2L);
     }
 }
