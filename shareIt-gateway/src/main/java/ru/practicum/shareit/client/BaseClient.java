@@ -102,7 +102,10 @@ public abstract class BaseClient {
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getResponseBodyAsString());
             T errorBody = null;
-            try { errorBody = objectMapper.readValue(e.getResponseBodyAsString(), responseType); } catch (Exception ignored) {}
+            try {
+                errorBody = objectMapper.readValue(e.getResponseBodyAsString(), responseType);
+            } catch (Exception ignored) {
+            }
             return ResponseEntity.status(e.getStatusCode()).body(errorBody);
         } catch (Exception e) {
             log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getMessage());
