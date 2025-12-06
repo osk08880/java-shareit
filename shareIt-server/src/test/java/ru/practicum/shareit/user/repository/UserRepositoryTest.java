@@ -80,4 +80,18 @@ class UserRepositoryTest {
         assertThat(users).hasSize(1);
         assertThat(users.get(0)).isEqualTo(user2);
     }
+
+    @Test
+    void findById_returnsUser() {
+        Optional<User> found = userRepository.findById(user1.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get()).isEqualTo(user1);
+    }
+
+    @Test
+    void findById_returnsEmptyIfNotFound() {
+        Optional<User> found = userRepository.findById(999L);
+        assertThat(found).isEmpty();
+    }
+
 }
