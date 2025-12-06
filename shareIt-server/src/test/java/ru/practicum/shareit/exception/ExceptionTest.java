@@ -18,9 +18,18 @@ class ExceptionTest {
 
     @Test
     void runtimeExceptions_constructorsWork() {
-        assertThrows(DuplicateEmailException.class, () -> { throw new DuplicateEmailException("duplicate"); });
-        assertThrows(MappingException.class, () -> { throw new MappingException("mapping"); });
-        assertThrows(NotFoundException.class, () -> { throw new NotFoundException("not found"); });
+        assertThrows(DuplicateEmailException.class, () ->
+        {
+            throw new DuplicateEmailException("duplicate");
+        });
+        assertThrows(MappingException.class, () ->
+        {
+            throw new MappingException("mapping");
+        });
+        assertThrows(NotFoundException.class, () ->
+        {
+            throw new NotFoundException("not found");
+        });
     }
 
     @Test
