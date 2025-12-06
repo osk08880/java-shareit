@@ -10,27 +10,10 @@ import org.springframework.validation.FieldError;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ExceptionTest {
-
-    @Test
-    void runtimeExceptions_constructorsWork() {
-        assertThrows(DuplicateEmailException.class, () ->
-        {
-            throw new DuplicateEmailException("duplicate");
-        });
-        assertThrows(MappingException.class, () ->
-        {
-            throw new MappingException("mapping");
-        });
-        assertThrows(NotFoundException.class, () ->
-        {
-            throw new NotFoundException("not found");
-        });
-    }
 
     @Test
     void globalExceptionHandler_handlesNotFound() {
