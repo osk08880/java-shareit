@@ -12,7 +12,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +34,6 @@ class ItemRequestRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Сохраняем пользователей
         requestor = userRepository.save(User.builder()
                 .name("Alice")
                 .email("alice@example.com")
@@ -46,7 +44,6 @@ class ItemRequestRepositoryTest {
                 .email("bob@example.com")
                 .build());
 
-        // Сохраняем ItemRequest
         request1 = itemRequestRepository.save(ItemRequest.builder()
                 .description("Need a drill")
                 .requestor(requestor)
@@ -59,7 +56,6 @@ class ItemRequestRepositoryTest {
                 .created(LocalDateTime.now())
                 .build());
 
-        // Сохраняем Item, привязанный к request1
         itemRepository.save(Item.builder()
                 .name("Drill")
                 .description("Powerful drill")
