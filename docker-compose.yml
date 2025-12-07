@@ -24,7 +24,8 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shareit
       SPRING_DATASOURCE_USERNAME: shareit
@@ -42,31 +43,28 @@ services:
       - server
     environment:
       SHAREIT_SERVER_URL: http://server:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/users"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   newman:
-    image: postman/newman
+    image: postman/newman:alpine
     container_name: shareit-newman
     depends_on:
-      - gateway
-    volumes:
-      - ./postman:/etc/newman
+      gateway:
+        condition: service_healthy
     working_dir: /etc/newman
-    networks:
-      - default
+    volumes:
+      - ./tests/postman:/etc/newman
+      - ./tests/reports:/etc/newman/reports
     command: >
-      sh -c "
-      # Ждём готовности gateway
-      sleep 15 &&
-      # Очистка базы перед тестами
-      PGPASSWORD=shareit psql -h db -U shareit -d shareit -c 'TRUNCATE TABLE users RESTART IDENTITY CASCADE; TRUNCATE TABLE items RESTART IDENTITY CASCADE; TRUNCATE TABLE bookings RESTART IDENTITY CASCADE;' &&
-      # Запуск Newman с твоим sprint.json
       newman run sprint.json
       --delay-request 50
       -r cli,htmlextra
       --color on
       --reporter-htmlextra-export reports/shareIt.html
-      --reporter-htmlextra-title 'Отчет по тестам'
+      --reporter-htmlextra-title "Отчет по тестам"
       --reporter-htmlextra-logs true
-      --environment /etc/newman/postman_environment.json
-      "
