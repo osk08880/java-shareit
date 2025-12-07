@@ -1,16 +1,20 @@
 version: '3.9'
 
 services:
-  gateway:
-    build: ./gateway
-    image: shareit-gateway
-    container_name: shareit-gateway
+  db:
+    image: postgres:16.1
+    container_name: shareit-db
     ports:
-      - "8080:8080"
-    depends_on:
-      - server
+      - "6541:5432"
     environment:
-      - SHAREIT_SERVER_URL=http://server:9090
+      POSTGRES_USER: shareit
+      POSTGRES_PASSWORD: shareit
+      POSTGRES_DB: shareit
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   server:
@@ -22,23 +26,44 @@ services:
     depends_on:
       - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
-      - SPRING_DATASOURCE_USERNAME=shareit
-      - SPRING_DATASOURCE_PASSWORD=shareit
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shareit
+      SPRING_DATASOURCE_USERNAME: shareit
+      SPRING_DATASOURCE_PASSWORD: shareit
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     restart: unless-stopped
 
-  db:
-    image: postgres:16.1
-    container_name: shareit-db
+  gateway:
+    build: ./gateway
+    image: shareit-gateway
+    container_name: shareit-gateway
     ports:
-      - "6541:5432"
+      - "8080:8080"
+    depends_on:
+      - server
     environment:
-      - POSTGRES_USER=shareit
-      - POSTGRES_PASSWORD=shareit
-      - POSTGRES_DB=shareit
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      SHAREIT_SERVER_URL: http://server:9090
     restart: unless-stopped
+
+  newman:
+    image: postman/newman
+    container_name: shareit-newman
+    depends_on:
+      - gateway
+    volumes:
+      - ./tests/postman:/etc/newman
+    working_dir: /etc/newman
+    networks:
+      - default
+    command: >
+      sh -c "
+      sleep 15 &&
+      PGPASSWORD=shareit psql -h db -U shareit -d shareit -c 'TRUNCATE TABLE users RESTART IDENTITY CASCADE; TRUNCATE TABLE items RESTART IDENTITY CASCADE; TRUNCATE TABLE bookings RESTART IDENTITY CASCADE;' &&
+      newman run sprint.json
+      --delay-request 50
+      -r cli,htmlextra
+      --color on
+      --reporter-htmlextra-export reports/shareIt.html
+      --reporter-htmlextra-title 'Отчет по тестам'
+      --reporter-htmlextra-logs true
+      --environment /etc/newman/postman_environment.json
+      "
