@@ -50,14 +50,17 @@ services:
     depends_on:
       - gateway
     volumes:
-      - ./tests/postman:/etc/newman
+      - ./postman:/etc/newman
     working_dir: /etc/newman
     networks:
       - default
     command: >
       sh -c "
+      # Ждём готовности gateway
       sleep 15 &&
+      # Очистка базы перед тестами
       PGPASSWORD=shareit psql -h db -U shareit -d shareit -c 'TRUNCATE TABLE users RESTART IDENTITY CASCADE; TRUNCATE TABLE items RESTART IDENTITY CASCADE; TRUNCATE TABLE bookings RESTART IDENTITY CASCADE;' &&
+      # Запуск Newman с твоим sprint.json
       newman run sprint.json
       --delay-request 50
       -r cli,htmlextra
