@@ -8,8 +8,6 @@ import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.State;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequestMapping(BookingController.BASE_PATH)
@@ -55,7 +53,7 @@ public class BookingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookingDto>> getAll(
+    public ResponseEntity<Object> getAll(
             @RequestParam(defaultValue = DEFAULT_STATE) State state,
             @RequestHeader(HEADER_USER_ID) Long userId) {
 
@@ -64,7 +62,7 @@ public class BookingController {
     }
 
     @GetMapping(OWNER_PATH)
-    public ResponseEntity<List<BookingDto>> getOwnerAll(
+    public ResponseEntity<Object> getOwnerAll(
             @RequestParam(defaultValue = DEFAULT_STATE) State state,
             @RequestHeader(HEADER_USER_ID) Long userId) {
 

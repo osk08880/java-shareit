@@ -11,5 +11,5 @@ shareit:
 
 logging:
   level:
-    ru.practicum.shareit: DEBUG
-    org.springframework.web.client.RestTemplate: DEBUG  # Логи REST-вызовов
+    ru.practicum.shareit.client.BaseClient: TRACE
+    org.springframework.web.client.RestTemplate: TRACE

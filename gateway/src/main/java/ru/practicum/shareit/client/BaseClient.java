@@ -1,143 +1,110 @@
 package ru.practicum.shareit.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.lang.Nullable;
 import org.springframework.http.*;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
-@Slf4j
-@RequiredArgsConstructor
 public abstract class BaseClient {
+    protected final RestTemplate rest;
 
-    protected static final String SERVER_URL = "http://localhost:9090";
-
-    protected final RestTemplate restTemplate;
-    protected final ObjectMapper objectMapper = new ObjectMapper();
-
-    protected <T> ResponseEntity<T> get(String url,
-                                        Map<String, Object> params,
-                                        Class<T> responseType,
-                                        String headerName,
-                                        Long userId) {
-        return exchange(url, HttpMethod.GET, null, params, responseType, headerName, userId);
+    public BaseClient(RestTemplate rest) {
+        this.rest = rest;
     }
 
-    protected <T> ResponseEntity<T> get(String url,
-                                        Map<String, Object> params,
-                                        ParameterizedTypeReference<T> responseType,
-                                        String headerName,
-                                        Long userId) {
-        return exchange(url, HttpMethod.GET, null, params, responseType, headerName, userId);
+    protected ResponseEntity<Object> get(String path) {
+        return get(path, null, null);
     }
 
-    protected <T> ResponseEntity<T> post(String url,
-                                         Object body,
-                                         Map<String, Object> params,
-                                         Class<T> responseType,
-                                         String headerName,
-                                         Long userId) {
-        return exchange(url, HttpMethod.POST, body, params, responseType, headerName, userId);
+    protected ResponseEntity<Object> get(String path, long userId) {
+        return get(path, userId, null);
     }
 
-    protected <T> ResponseEntity<T> post(String url,
-                                         Object body,
-                                         Map<String, Object> params,
-                                         ParameterizedTypeReference<T> responseType,
-                                         String headerName,
-                                         Long userId) {
-        return exchange(url, HttpMethod.POST, body, params, responseType, headerName, userId);
+    protected ResponseEntity<Object> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
     }
 
-    protected <T> ResponseEntity<T> patch(String url,
-                                          Object body,
-                                          Map<String, Object> params,
-                                          Class<T> responseType,
-                                          String headerName,
-                                          Long userId) {
-        return exchange(url, HttpMethod.PATCH, body, params, responseType, headerName, userId);
+    protected <T> ResponseEntity<Object> post(String path, T body) {
+        return post(path, null, null, body);
     }
 
-    protected <T> ResponseEntity<T> patch(String url,
-                                          Object body,
-                                          Map<String, Object> params,
-                                          ParameterizedTypeReference<T> responseType,
-                                          String headerName,
-                                          Long userId) {
-        return exchange(url, HttpMethod.PATCH, body, params, responseType, headerName, userId);
+    protected <T> ResponseEntity<Object> post(String path, long userId, T body) {
+        return post(path, userId, null, body);
     }
 
-    protected <T> ResponseEntity<T> delete(String url,
-                                           Map<String, Object> params,
-                                           Class<T> responseType,
-                                           String headerName,
-                                           Long userId) {
-        return exchange(url, HttpMethod.DELETE, null, params, responseType, headerName, userId);
+    protected <T> ResponseEntity<Object> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
     }
 
-    protected <T> ResponseEntity<T> exchange(String url,
-                                             HttpMethod method,
-                                             Object body,
-                                             Map<String, Object> params,
-                                             Class<T> responseType,
-                                             String headerName,
-                                             Long userId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        if (headerName != null && userId != null) {
-            headers.set(headerName, userId.toString());
-        }
-        HttpEntity<Object> request = new HttpEntity<>(body, headers);
+    protected <T> ResponseEntity<Object> patch(String path, T body) {
+        return patch(path, null, null, body);
+    }
 
+    protected <T> ResponseEntity<Object> patch(String path, long userId, T body) {
+        return patch(path, userId, null, body);
+    }
+
+    protected <T> ResponseEntity<Object> patch(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
+    }
+
+    protected ResponseEntity<Object> delete(String path) {
+        return delete(path, null, null);
+    }
+
+    protected ResponseEntity<Object> delete(String path, long userId) {
+        return delete(path, userId, null);
+    }
+
+    protected ResponseEntity<Object> delete(String path, Long userId, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.DELETE, path, userId, parameters, null);
+    }
+
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method,
+                                                          String path,
+                                                          Long userId,
+                                                          @Nullable Map<String, Object> parameters,
+                                                          @Nullable T body) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
+
+        ResponseEntity<Object> shareitServerResponse;
         try {
-            log.debug("CLIENT: {} {} userId={} params={}", method, url, userId, params);
-            ResponseEntity<T> response = restTemplate.exchange(SERVER_URL + url, method, request, responseType, params);
-            log.info("CLIENT: Успех {} {} userId={} статус={}", method, url, userId, response.getStatusCode());
-            return response;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getResponseBodyAsString());
-            T errorBody = null;
-            try {
-                errorBody = objectMapper.readValue(e.getResponseBodyAsString(), responseType);
-            } catch (Exception ignored) {
+            if (parameters != null) {
+                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
+            } else {
+                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class);
             }
-            return ResponseEntity.status(e.getStatusCode()).body(errorBody);
-        } catch (Exception e) {
-            log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }
+
+        return prepareGatewayResponse(shareitServerResponse);
     }
 
-    protected <T> ResponseEntity<T> exchange(String url,
-                                             HttpMethod method,
-                                             Object body,
-                                             Map<String, Object> params,
-                                             ParameterizedTypeReference<T> responseType,
-                                             String headerName,
-                                             Long userId) {
+    private HttpHeaders defaultHeaders(Long userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        if (headerName != null && userId != null) {
-            headers.set(headerName, userId.toString());
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        if (userId != null) {
+            headers.set("X-Sharer-User-Id", String.valueOf(userId));
         }
-        HttpEntity<Object> request = new HttpEntity<>(body, headers);
+        return headers;
+    }
 
-        try {
-            log.debug("CLIENT: {} {} userId={} params={}", method, url, userId, params);
-            ResponseEntity<T> response = restTemplate.exchange(SERVER_URL + url, method, request, responseType, params);
-            log.info("CLIENT: Успех {} {} userId={} статус={}", method, url, userId, response.getStatusCode());
+    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
+        if (response.getStatusCode().is2xxSuccessful()) {
             return response;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getResponseBodyAsString());
-            return ResponseEntity.status(e.getStatusCode()).body(null);
-        } catch (Exception e) {
-            log.error("CLIENT ERROR {} {} userId={}: {}", method, url, userId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
+
+        if (response.hasBody()) {
+            return responseBuilder.body(response.getBody());
+        }
+
+        return responseBuilder.build();
     }
 }

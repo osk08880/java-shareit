@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.client.ItemRequestClient;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequestMapping(ItemRequestController.BASE_PATH)
@@ -36,7 +34,7 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ItemRequestDto>> getOwn(
+    public ResponseEntity<Object> getOwn(
             @RequestHeader(HEADER_USER_ID) Long userId) {
 
         log.info("GATEWAY: GET {} userId={}", BASE_PATH, userId);
@@ -44,7 +42,7 @@ public class ItemRequestController {
     }
 
     @GetMapping(ALL_PATH)
-    public ResponseEntity<List<ItemRequestDto>> getAll(
+    public ResponseEntity<Object> getAll(
             @RequestHeader(HEADER_USER_ID) Long userId,
             @RequestParam(defaultValue = "" + DEFAULT_FROM) Integer from,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) Integer size) {

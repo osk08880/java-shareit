@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequestMapping(UserController.BASE_PATH)
@@ -26,7 +24,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> findAll() {
+    public ResponseEntity<Object> findAll() {
         log.info("GATEWAY: GET {}", BASE_PATH);
         return userClient.findAll();
     }
