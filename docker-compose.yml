@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16.1
+    container_name: shareit-db
+    ports:
+      - "6541:5432"
+    environment:
+      POSTGRES_USER: shareit
+      POSTGRES_PASSWORD: shareit
+      POSTGRES_DB: shareit
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  server:
+    build: ./server
+    image: shareit-server
+    container_name: shareit-server
+    ports:
+      - "9090:9090"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shareit
+      SPRING_DATASOURCE_USERNAME: shareit
+      SPRING_DATASOURCE_PASSWORD: shareit
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    restart: unless-stopped
+
+  gateway:
+    build: ./gateway
+    image: shareit-gateway
+    container_name: shareit-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - server
+    environment:
+      SHAREIT_SERVER_URL: http://server:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/users"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  newman:
+    image: postman/newman:alpine
+    container_name: shareit-newman
+    depends_on:
+      gateway:
+        condition: service_healthy
+    working_dir: /etc/newman
+    volumes:
+      - ./tests/postman:/etc/newman
+      - ./tests/reports:/etc/newman/reports
+    command: >
+      newman run sprint.json
+      --delay-request 50
+      -r cli,htmlextra
+      --color on
+      --reporter-htmlextra-export reports/shareIt.html
+      --reporter-htmlextra-title "Отчет по тестам"
+      --reporter-htmlextra-logs true
